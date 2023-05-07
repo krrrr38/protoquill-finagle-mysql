@@ -1,0 +1,26 @@
+name: CI
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+    branches:
+    - main
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-java@v3
+      with:
+        distribution: corretto
+        java-version: 11
+        cache: sbt
+    - uses: shogo82148/actions-setup-mysql@v1
+      with:
+        mysql-version: '8.0'
+        my-cnf: |
+          [mysqld]
+          default-authentication-plugin=mysql_native_password
+    - run: ./setup/setup.sh
+    - run: sbt -v +test

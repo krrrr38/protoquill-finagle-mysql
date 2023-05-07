@@ -70,8 +70,8 @@ trait FinagleMysqlEncoders {
   implicit val localDateTimeEncoder: Encoder[LocalDateTime] =
     encoder[LocalDateTime] { (d: LocalDateTime) =>
       timestampValue(
-        new Timestamp(
-          d.atZone(injectionTimeZone.toZoneId).toInstant.toEpochMilli
+        Timestamp.from(
+          d.atZone(injectionTimeZone.toZoneId).toInstant
         )
       ): Parameter
     }

@@ -24,8 +24,9 @@ import com.twitter.finagle.mysql.{
 import com.twitter.util.Await
 import com.twitter.util.Future
 import com.twitter.util.Local
+import io.getquill.*
 import com.typesafe.config.Config
-import io.getquill.{MySQLDialect, NamingStrategy, ReturnAction}
+import io.getquill.{MySQLDialect, NamingStrategy, Query, Quoted, ReturnAction}
 import io.getquill.context.sql.SqlContext
 import io.getquill.util.{ContextLogger, LoadConfig}
 import io.getquill.util.Messages.fail
@@ -35,6 +36,8 @@ import io.getquill.context.{
   ContextVerbTranslate,
   ExecutionInfo
 }
+
+import scala.annotation.targetName
 
 sealed trait OperationType
 object OperationType {
@@ -146,7 +149,8 @@ class FinagleMysqlContext[+N <: NamingStrategy](
   override type RunBatchActionReturningResult[T] = List[T]
   override type StreamResult[T] = Future[AsyncStream[T]]
   override type Session = Unit
-  type Runner = Unit
+  override type Runner = Unit
+  override protected def context: Runner = ()
   override type TranslateRunner = Unit
   override def translateContext: TranslateRunner = ()
   override type NullChecker = LocalNullChecker
@@ -156,6 +160,29 @@ class FinagleMysqlContext[+N <: NamingStrategy](
     }
   }
   implicit val nullChecker: LocalNullChecker = new LocalNullChecker()
+
+  // format: off
+  @targetName("runQueryDefault")
+  inline def run[T](inline quoted: Quoted[Query[T]]): Future[List[T]] = InternalApi.runQueryDefault(quoted)
+  @targetName("runQuery")
+  inline def run[T](inline quoted: Quoted[Query[T]], inline wrap: OuterSelectWrap): Future[List[T]] = InternalApi.runQuery(quoted, wrap)
+  @targetName("runQuerySingle")
+  inline def run[T](inline quoted: Quoted[T]): Future[T] = InternalApi.runQuerySingle(quoted)
+  @targetName("runAction")
+  inline def run[E](inline quoted: Quoted[Action[E]]): Future[Long] = InternalApi.runAction(quoted)
+  @targetName("runActionReturning")
+  inline def run[E, T](inline quoted: Quoted[ActionReturning[E, T]]): Future[T] = InternalApi.runActionReturning[E, T](quoted)
+  @targetName("runActionReturningMany")
+  inline def run[E, T](inline quoted: Quoted[ActionReturning[E, List[T]]]): Future[List[T]] = InternalApi.runActionReturningMany[E, T](quoted)
+  @targetName("runBatchAction")
+  inline def run[I, A <: Action[I] & QAC[I, Nothing]](inline quoted: Quoted[BatchAction[A]], rowsPerBatch: Int): Future[List[Long]] = InternalApi.runBatchAction(quoted, rowsPerBatch)
+  @targetName("runBatchActionDefault")
+  inline def run[I, A <: Action[I] & QAC[I, Nothing]](inline quoted: Quoted[BatchAction[A]]): Future[List[Long]] = InternalApi.runBatchAction(quoted, 1)
+  @targetName("runBatchActionReturning")
+  inline def run[I, T, A <: Action[I] & QAC[I, T]](inline quoted: Quoted[BatchAction[A]], rowsPerBatch: Int): Future[List[T]] = InternalApi.runBatchActionReturning(quoted, rowsPerBatch)
+  @targetName("runBatchActionReturningDefault")
+  inline def run[I, T, A <: Action[I] & QAC[I, T]](inline quoted: Quoted[BatchAction[A]]): Future[List[T]] = InternalApi.runBatchActionReturning(quoted, 1)
+  // format: on
 
   protected val timestampValue =
     new TimestampValue(
