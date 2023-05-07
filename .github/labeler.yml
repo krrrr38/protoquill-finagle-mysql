@@ -1,0 +1,5 @@
+scala:
+- src/**/*
+- project/**/*
+ci:
+- .github/**/*
