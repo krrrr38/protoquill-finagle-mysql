@@ -23,4 +23,5 @@ jobs:
           [mysqld]
           default-authentication-plugin=mysql_native_password
     - run: ./setup/setup.sh
+    - run: sbt fmtCheck
     - run: sbt -v +test
