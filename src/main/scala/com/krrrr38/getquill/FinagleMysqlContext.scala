@@ -271,23 +271,55 @@ class FinagleMysqlContext[+N <: NamingStrategy](
     fail("returningMany is not supported in Finagle MySQL Context")
   }
 
+  private val batchInsertSql = """^(INSERT .* VALUES) (\(\?(?:, \?)*\))$""".r
   def executeBatchAction(
       groups: List[BatchGroup]
-  )(info: ExecutionInfo, dc: Runner): Future[List[Long]] =
+  )(info: ExecutionInfo, dc: Runner): Future[List[Long]] = {
+    def executeBatchInsertAction(
+        sql: String,
+        prepares: List[Prepare]
+    ): Future[Long] = {
+      val (params, prepared) = prepares.foldLeft(
+        (List.empty[Any], List.empty[Parameter])
+      )((acc, prepare) => {
+        val (params, prepared) = prepare(Nil, ())
+        (acc._1 ++ params, acc._2 ++ prepared)
+      })
+      logger.logQuery(sql, params)
+      withClient(Write)(_.prepare(sql)(prepared: _*))
+        .map(r => toOk(r).affectedRows)
+    }
+    def executeBatchOtherAction(
+        sql: String,
+        prepares: List[Prepare]
+    ): Future[List[Long]] = {
+      prepares
+        .foldLeft(Future.value(List.newBuilder[Long])) { case (acc, prepare) =>
+          acc.flatMap { list =>
+            executeAction(sql, prepare)(info, dc).map(list += _)
+          }
+        }
+        .map(_.result())
+    }
+
     Future
       .collect {
-        groups.map { case BatchGroup(sql, prepare) =>
-          prepare
-            .foldLeft(Future.value(List.newBuilder[Long])) {
-              case (acc, prepare) =>
-                acc.flatMap { list =>
-                  executeAction(sql, prepare)(info, dc).map(list += _)
-                }
-            }
-            .map(_.result())
+        groups.map { case BatchGroup(sql, prepares) =>
+          batchInsertSql.findFirstMatchIn(sql) match {
+            case Some(m) =>
+              // optimize batch insert action
+              // from: INSERT sometable (col1, col2) VALUES (?, ?); INSERT sometable (col1, col2) VALUES (?, ?);
+              // to: INSERT sometable (col1, col2) VALUES (?, ?), (?, ?);
+              val actualSql =
+                s"${m.group(1)} ${(1 to prepares.length).map(_ => m.group(2)).mkString(", ")}"
+              executeBatchInsertAction(actualSql, prepares).map(List(_))
+            case None =>
+              executeBatchOtherAction(sql, prepares)
+          }
         }
       }
       .map(_.flatten.toList)
+  }
 
   def executeBatchActionReturning[T](
       groups: List[BatchGroupReturning],

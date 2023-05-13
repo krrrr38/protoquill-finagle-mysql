@@ -43,4 +43,27 @@ class FinagleMysqlContextSpecUpdateSuite extends FunSuite {
       )
     )
   }
+
+  test("update bulk") {
+    val book1 = factory.book().value
+    val book2 = factory.book().value
+    val book3 = factory.book().value
+    val updateBooks = List(book1, book3)
+    ctx
+      .run(ctx.liftQuery(updateBooks).foreach { book =>
+        query[Book]
+          .filter(_.id == book.id)
+          .update(_.title -> "updated")
+      })
+      .value
+    val ret = ctx.run(quote(query[Book].map(b => (b.id, b.title)))).value.toMap
+    assertEquals(
+      ret,
+      Map(
+        book1.id -> "updated",
+        book2.id -> book2.title,
+        book3.id -> "updated"
+      )
+    )
+  }
 }
