@@ -10,7 +10,14 @@ lazy val root = project
   .in(file("."))
   .settings(
     name := "protoquill-finagle-mysql",
+    organization := "com.krrrr38",
     version := "0.1.0-SNAPSHOT",
+    homepage := Some(
+      url("https://github.com/krrrr38/protoquill-finagle-mysql")
+    ),
+    licenses := List(
+      ("Apache License 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))
+    ),
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
       "io.getquill" %% "quill-sql" % "4.6.0.1",
