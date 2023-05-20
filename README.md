@@ -13,15 +13,13 @@ Scala3 [zio/zio-protoquill](https://github.com/zio/zio-protoquill) integration w
 > sbt test
 ```
 
+## Resolve next version
+
+When adding `minor` and `major` github pull request label, next version would be resolved by them.
+
 ## Publish
 
 - SNAPSHOT Release
   - Each snapshot release is published by main branch ci.
 - Release
-  - Push git tag by following command and released by tag ci.
-
-```sh
-TAG=0.1.0
-git tag -a v$TAG -m "v$TAG"
-git push origin v$TAG
-```
+  - Merge [tagpr](https://github.com/Songmu/tagpr) Pull Request, then publish release on git tag ci.

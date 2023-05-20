@@ -11,7 +11,6 @@ lazy val root = project
   .settings(
     name := "protoquill-finagle-mysql",
     organization := "com.krrrr38",
-    version := "0.2.0-SNAPSHOT",
     versionScheme := Some("early-semver"),
     homepage := Some(
       url("https://github.com/krrrr38/protoquill-finagle-mysql")
