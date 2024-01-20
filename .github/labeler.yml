@@ -1,5 +1,8 @@
 scala:
-- src/**/*
-- project/**/*
+- changed-files:
+  - any-glob-to-any-file:
+    - src/**/*
+    - project/**/*
 ci:
-- .github/**/*
+- changed-files:
+  - any-glob-to-any-file: .github/**/*
