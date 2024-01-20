@@ -28,7 +28,7 @@ lazy val root = project
     ),
     scalaVersion := scala3Version,
     libraryDependencies ++= Seq(
-      "io.getquill" %% "quill-sql" % "4.8.0",
+      "io.getquill" %% "quill-sql" % "4.8.1",
       ("com.twitter" %% "finagle-mysql" % "23.11.0" cross CrossVersion.for3Use2_13)
         .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
       "org.scalameta" %% "munit" % "1.0.0-M10" % Test,
