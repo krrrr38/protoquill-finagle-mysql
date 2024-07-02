@@ -1,7 +1,7 @@
 version: "3"
 services:
   protoquill-mysql:
-    image: mysql:8
+    image: mysql:9
     platform: linux/x86_64
     container_name: protoquill-mysql
     command: --default-authentication-plugin=mysql_native_password --general-log=true --general-log-file=/var/log/mysql/general.log # docker exec -it protoquill-mysql tail /var/log/mysql/general.log
