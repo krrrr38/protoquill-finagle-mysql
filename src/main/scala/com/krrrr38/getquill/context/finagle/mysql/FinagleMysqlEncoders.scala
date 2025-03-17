@@ -11,7 +11,7 @@ import com.twitter.finagle.mysql.*
 import io.getquill.MappedEncoding
 
 trait FinagleMysqlEncoders {
-  this: FinagleMysqlContext[_] =>
+  this: FinagleMysqlContext[?] =>
 
   type Encoder[T] = FinagleMySqlEncoder[T]
 
@@ -32,7 +32,7 @@ trait FinagleMysqlEncoders {
   def encoder[T](implicit cbp: CanBeParameter[T]): Encoder[T] =
     encoder[T]((v: T) => v: Parameter)
 
-  private[this] val nullEncoder = encoder((_: Null) => Parameter.NullParameter)
+  private val nullEncoder = encoder((_: Null) => Parameter.NullParameter)
 
   implicit def optionEncoder[T](implicit e: Encoder[T]): Encoder[Option[T]] =
     FinagleMySqlEncoder { (index, value, row, session) =>

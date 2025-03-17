@@ -15,7 +15,7 @@ class FinagleMysqlContextEncoderDecoderSuite extends ScalaCheckSuite {
   // override def scalaCheckInitialSeed = "change me for debugging"
 
   import TestContext.*
-  import ctx._
+  import ctx.*
 
   override def beforeAll(): Unit = {
     super.beforeAll()

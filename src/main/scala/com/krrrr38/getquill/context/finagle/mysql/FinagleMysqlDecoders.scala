@@ -11,7 +11,7 @@ import io.getquill.util.Messages.fail
 import scala.reflect.{ClassTag, classTag}
 
 trait FinagleMysqlDecoders {
-  this: FinagleMysqlContext[_] =>
+  this: FinagleMysqlContext[?] =>
 
   type Decoder[T] = FinagleMysqlDecoder[T]
 
