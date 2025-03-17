@@ -16,6 +16,7 @@ jobs:
         distribution: corretto
         java-version: 11
         cache: sbt
+    - uses: sbt/setup-sbt@v1
     - uses: shogo82148/actions-setup-mysql@v1
       with:
         mysql-version: '8.0'
