@@ -60,7 +60,7 @@ object TestContext {
   object factory {
 
     import TestContext.*
-    import ctx._
+    import ctx.*
 
     def book(
         id: String = "",

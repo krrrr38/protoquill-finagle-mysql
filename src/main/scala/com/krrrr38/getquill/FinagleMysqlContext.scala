@@ -47,7 +47,7 @@ object OperationType {
 
 class FinagleMysqlContext[+N <: NamingStrategy](
     val naming: N,
-    client: OperationType => Client with Transactions,
+    client: OperationType => Client & Transactions,
     private[getquill] val injectionTimeZone: TimeZone,
     private[getquill] val extractionTimeZone: TimeZone
 ) extends Context[MySQLDialect, N]
@@ -57,11 +57,11 @@ class FinagleMysqlContext[+N <: NamingStrategy](
     with FinagleMysqlDecoders
     with FinagleMysqlEncoders {
 
-  import OperationType._
+  import OperationType.*
 
   def this(
       naming: N,
-      client: Client with Transactions,
+      client: Client & Transactions,
       injectionTimeZone: TimeZone,
       extractionTimeZone: TimeZone
   ) =
@@ -69,8 +69,8 @@ class FinagleMysqlContext[+N <: NamingStrategy](
 
   def this(
       naming: N,
-      master: Client with Transactions,
-      slave: Client with Transactions,
+      master: Client & Transactions,
+      slave: Client & Transactions,
       timeZone: TimeZone
   ) = {
     this(
@@ -95,7 +95,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
   def this(naming: N, configPrefix: String) =
     this(naming, LoadConfig(configPrefix))
 
-  def this(naming: N, client: Client with Transactions, timeZone: TimeZone) =
+  def this(naming: N, client: Client & Transactions, timeZone: TimeZone) =
     this(naming, client, timeZone, timeZone)
   def this(naming: N, config: FinagleMysqlContextConfig, timeZone: TimeZone) =
     this(naming, config.client, timeZone)
@@ -135,7 +135,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
 
   val idiom = MySQLDialect
 
-  private val logger = ContextLogger(classOf[FinagleMysqlContext[_]])
+  private val logger = ContextLogger(classOf[FinagleMysqlContext[?]])
 
   override type PrepareRow = List[Parameter]
   override type ResultRow = Row
@@ -227,7 +227,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
     val (params, prepared) = prepare(Nil, ())
     logger.logQuery(sql, params)
     withClient(Read)(
-      _.prepare(sql).select(prepared: _*)(row => extractor(row, ()))
+      _.prepare(sql).select(prepared*)(row => extractor(row, ()))
     ).map(_.toList)
   }
 
@@ -246,7 +246,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
   )(info: ExecutionInfo, dc: Runner): Future[Long] = {
     val (params, prepared) = prepare(Nil, ())
     logger.logQuery(sql, params)
-    withClient(Write)(_.prepare(sql)(prepared: _*))
+    withClient(Write)(_.prepare(sql)(prepared*))
       .map(r => toOk(r).affectedRows)
   }
 
@@ -258,7 +258,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
   )(info: ExecutionInfo, dc: Runner): Future[T] = {
     val (params, prepared) = prepare(Nil, ())
     logger.logQuery(sql, params)
-    withClient(Write)(_.prepare(sql)(prepared: _*))
+    withClient(Write)(_.prepare(sql)(prepared*))
       .map(extractReturningValue(_, extractor))
   }
 
@@ -286,7 +286,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
         (acc._1 ++ params, acc._2 ++ prepared)
       })
       logger.logQuery(sql, params)
-      withClient(Write)(_.prepare(sql)(prepared: _*))
+      withClient(Write)(_.prepare(sql)(prepared*))
         .map(r => toOk(r).affectedRows)
     }
     def executeBatchOtherAction(
@@ -354,7 +354,7 @@ class FinagleMysqlContext[+N <: NamingStrategy](
 
     withClient(Read) { client =>
       client
-        .cursor(sql)(rowsPerFetch, prepared: _*)(row => extractor(row, ()))
+        .cursor(sql)(rowsPerFetch, prepared*)(row => extractor(row, ()))
         .map(_.stream)
     }
   }

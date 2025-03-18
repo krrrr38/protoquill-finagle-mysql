@@ -10,7 +10,7 @@ import java.util.UUID
 class FinagleMysqlContextSpecDeleteSuite extends FunSuite {
 
   import TestContext.*
-  import ctx._
+  import ctx.*
 
   override def beforeEach(context: BeforeEach): Unit = {
     super.beforeEach(context)
