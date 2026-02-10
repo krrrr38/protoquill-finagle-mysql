@@ -33,7 +33,7 @@ lazy val root = project
         .exclude("org.scala-lang.modules", "scala-collection-compat_2.13"),
       "org.scalameta" %% "munit" % "1.2.2" % Test,
       "org.scalameta" %% "munit-scalacheck" % "1.2.0" % Test,
-      "ch.qos.logback" % "logback-classic" % "1.5.28" % Test
+      "ch.qos.logback" % "logback-classic" % "1.5.29" % Test
     ),
     Test / parallelExecution := false
   )
